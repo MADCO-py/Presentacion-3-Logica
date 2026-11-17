@@ -62,7 +62,6 @@ function reveal(slide: HTMLElement) {
 }
 
 slides.forEach((slide) => {
-  const inner = slide.querySelector<HTMLElement>('.slide-inner');
   if (reduced) {
     onEnter[slide.id]?.();
     return;
@@ -74,20 +73,6 @@ slides.forEach((slide) => {
     onEnter: () => reveal(slide),
     onEnterBack: () => reveal(slide),
   });
-  // Al salir, la diapositiva se hunde y se desvanece: sensación de profundidad.
-  if (inner) {
-    gsap.fromTo(
-      inner,
-      { scale: 1, opacity: 1, y: 0 },
-      {
-        scale: 0.9,
-        opacity: 0.15,
-        y: -80,
-        ease: 'none',
-        scrollTrigger: { trigger: slide, start: 'bottom 98%', end: 'bottom 5%', scrub: true },
-      },
-    );
-  }
 });
 
 // La portada entra sola al cargar.
@@ -172,6 +157,17 @@ function go(i: number) {
   }
   if (animating && target === current) return;
   animating = true;
+  // La diapositiva que se va se hunde y se desvanece durante la transición; al terminar se limpia,
+  // así ninguna queda a medio desvanecer (p. ej. al entrar o salir de pantalla completa).
+  const leaving = slides[current].querySelector<HTMLElement>('.slide-inner');
+  if (leaving && target !== current && !reduced) {
+    gsap.fromTo(
+      leaving,
+      { scale: 1, opacity: 1, y: 0 },
+      { scale: 0.92, opacity: 0.1, y: (target > current ? -1 : 1) * 80, duration: 0.7, ease: 'power2.in', overwrite: true },
+    );
+    gsap.delayedCall(1.2, () => gsap.set(leaving, { clearProps: 'transform,opacity' }));
+  }
   setCurrent(target);
   gsap.to(window, {
     scrollTo: { y: slides[target].offsetTop, autoKill: false },
@@ -225,9 +221,22 @@ window.addEventListener('touchend', (e) => {
   if (Math.abs(dy) > 50) go(current + Math.sign(dy));
 });
 
-// Al cambiar el tamaño de la ventana se vuelve a alinear la diapositiva actual.
-window.addEventListener('resize', () => {
-  if (deckQuery.matches && !animating) window.scrollTo(0, slides[current].offsetTop);
+// Al cambiar el tamaño de la ventana (o entrar/salir de pantalla completa) se vuelve a alinear la
+// diapositiva actual y se recalculan los disparadores de animación.
+let pinnedIndex = 0;
+function realign() {
+  if (!deckQuery.matches || animating) return;
+  window.scrollTo(0, slides[current].offsetTop);
+  ScrollTrigger.refresh();
+}
+window.addEventListener('resize', realign);
+document.addEventListener('fullscreenchange', () => requestAnimationFrame(() => requestAnimationFrame(realign)));
+ScrollTrigger.addEventListener('refreshInit', () => {
+  // Durante el refresh se fija el índice actual para no perder la diapositiva si cambia la altura.
+  pinnedIndex = current;
+});
+ScrollTrigger.addEventListener('refresh', () => {
+  if (deckQuery.matches && !animating) window.scrollTo(0, slides[pinnedIndex].offsetTop);
 });
 
 document.addEventListener('keydown', (e) => {
