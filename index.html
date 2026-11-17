@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#000000" />
+    <title>Verum · Evaluador semántico</title>
+    <meta
+      name="description"
+      content="Presentación del evaluador semántico de lógica de primer orden — MM3032 Lógica Matemática, UVG."
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23000'/%3E%3Ctext x='32' y='46' font-size='40' text-anchor='middle' fill='%23fff' font-family='sans-serif'%3E%E2%8A%A8%3C/text%3E%3C/svg%3E"
+    />
+  </head>
+  <body data-theme="dark">
+    <!-- Barra superior -->
+    <header class="topbar" id="topbar">
+      <a class="wordmark" href="#portada" aria-label="Ir a la portada">VERUM</a>
+      <nav class="toplinks" aria-label="Secciones">
+        <a href="#objetivo">Objetivo</a>
+        <a href="#r1">Requisitos</a>
+        <a href="#tarski">Semántica</a>
+        <a href="#ia">IA</a>
+      </nav>
+      <button class="topbtn" id="fs-btn" type="button" title="Pantalla completa (F)">Pantalla completa</button>
+    </header>
+
+    <nav class="dots" id="dots" aria-label="Diapositivas"></nav>
+    <div class="progress" aria-hidden="true"><span id="progress-bar"></span></div>
+    <div class="counter" id="counter" aria-live="polite">01 / 15</div>
+    <div class="hint" id="hint">← → o rueda para avanzar · F pantalla completa</div>
+
+    <main id="deck">
+      <!-- 01 · PORTADA -->
+      <section class="slide hero" id="portada" data-theme="dark" data-title="Portada">
+        <canvas class="gl" id="hero-gl" aria-hidden="true"></canvas>
+        <div class="hero-top">
+          <p class="kicker" data-reveal>MM3032 Lógica Matemática · UVG</p>
+          <h1 class="hero-title" data-split>Verum</h1>
+          <p class="hero-sub" data-reveal>Evaluador semántico de lógica de primer orden</p>
+        </div>
+        <div class="hero-caption" data-reveal>
+          <span class="glyph-name" id="glyph-name">Para todo</span>
+        </div>
+        <div class="hero-bottom">
+          <div class="team" data-reveal>
+            <span>Samuel Robledo</span><span>Miguel Rosas</span><span>Miguel Carranza</span>
+          </div>
+          <div class="cta-row" data-reveal>
+            <a class="btn btn-primary" href="#objetivo">Comenzar</a>
+            <a class="btn btn-glass" href="#r1">Ver requisitos</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- 02 · OBJETIVO -->
+      <section class="slide light" id="objetivo" data-theme="light" data-title="Objetivo">
+        <div class="slide-inner center">
+          <p class="kicker" data-reveal>Objetivo</p>
+          <h2 class="giant-q" data-split>¿La fórmula es</h2>
+          <div class="verdict-flip" id="verdict-flip" data-reveal>VERDADERA</div>
+          <p class="lead narrow" data-reveal>
+            Construir una aplicación gráfica que analice una fórmula y determine si es
+            <b>verdadera o falsa</b> en una <b>interpretación finita</b> ingresada por el usuario —
+            y que además <b>justifique</b> por qué, según la semántica de Tarski.
+          </p>
+          <div class="formula-strip" data-reveal>
+            <span>I</span><span class="op">,</span><span>e</span><span class="op big">⊨</span><span>φ</span>
+            <span class="op">?</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 03 · FLUJO -->
+      <section class="slide dark" id="flujo" data-theme="dark" data-title="Arquitectura">
+        <div class="slide-inner">
+          <p class="kicker" data-reveal>Cómo funciona</p>
+          <h2 data-split>De texto a verdad, en siete pasos.</h2>
+          <p class="lead" data-reveal>
+            Un núcleo puro en TypeScript, sin dependencias, separado por completo de la interfaz. Cada etapa
+            es un módulo con sus propias pruebas.
+          </p>
+          <ol class="pipeline" id="pipeline">
+            <li><b>Lenguaje</b><code>model.ts</code><span>Firma: símbolos y aridades</span></li>
+            <li><b>Interpretación</b><code>model.ts</code><span>D, f<sup>I</sup>, P<sup>I</sup></span></li>
+            <li><b>Fórmula</b><code>lexer.ts · parser.ts</code><span>Texto → árbol sintáctico</span></li>
+            <li><b>Entorno</b><code>freeVars.ts</code><span>Variables libres → e</span></li>
+            <li class="gate"><b>Validación</b><code>validate.ts</code><span>Única puerta de entrada</span></li>
+            <li><b>Evaluación</b><code>evaluate.ts</code><span>Árbol de justificación</span></li>
+            <li><b>Explicación</b><code>explain.ts</code><span>Razones decisivas en español</span></li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- 04 · R1 LENGUAJE -->
+      <section class="slide light" id="r1" data-theme="light" data-title="R1 · Lenguaje">
+        <div class="slide-inner split">
+          <div>
+            <p class="kicker" data-reveal><span class="req">R1</span> Lenguaje configurable</p>
+            <h2 data-split>La firma decide qué es cada nombre.</h2>
+            <p class="req-text" data-reveal>
+              “Declarar nombres y aridades de los símbolos funcionales y predicados.”
+            </p>
+            <ul class="facts" data-reveal>
+              <li><b>Predicado</b> → inicia una fórmula atómica.</li>
+              <li><b>Símbolo funcional</b> → inicia un término. Las constantes son de aridad 0: <code>c</code>, no <code>c()</code>.</li>
+              <li><b>No declarado</b> → es una variable.</li>
+              <li>Predicados con aridad <b>≥ 1</b>: un 0-ario sería siempre verdadero; para eso ya están ⊤ y ⊥.</li>
+            </ul>
+          </div>
+          <div class="visual">
+            <div class="decl-grid" id="decl-grid">
+              <div class="decl fn"><span class="tag">función</span><b>f</b><i>aridad 1</i></div>
+              <div class="decl fn"><span class="tag">constante</span><b>c</b><i>aridad 0</i></div>
+              <div class="decl pr"><span class="tag">predicado</span><b>Ama</b><i>aridad 2</i></div>
+              <div class="decl pr"><span class="tag">predicado</span><b>Par</b><i>aridad 1</i></div>
+            </div>
+            <div class="classify" id="classify">
+              <span class="t pr">Ama</span><span class="t p">(</span><span class="t fn">c</span><span class="t p">,&nbsp;</span><span class="t fn">f</span><span class="t p">(</span><span class="t var">x</span><span class="t p">))</span>
+            </div>
+            <div class="legend">
+              <span><i class="sw pr"></i>predicado</span><span><i class="sw fn"></i>función</span><span><i class="sw var"></i>variable</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 05 · R2 INTERPRETACIÓN -->
+      <section class="slide dark" id="r2" data-theme="dark" data-title="R2 · Interpretación">
+        <div class="slide-inner split">
+          <div>
+            <p class="kicker" data-reveal><span class="req">R2</span> Interpretación</p>
+            <h2 data-split>Un mundo finito, sin huecos.</h2>
+            <p class="req-text" data-reveal>
+              “Ingresar un dominio finito no vacío D, una función f<sup>I</sup> : Dⁿ → D para cada símbolo funcional
+              n-ario y una relación P<sup>I</sup> ⊆ Dⁿ para cada predicado n-ario. No se admitirán funciones ni
+              relaciones vacías.”
+            </p>
+            <div class="chips" data-reveal>
+              <code>empty-domain</code><code>duplicate-element</code><code>empty-function</code><code>missing-value</code><code>empty-relation</code><code>tuple-outside-domain</code>
+            </div>
+          </div>
+          <div class="visual">
+            <div class="domain" id="domain">
+              <span class="set">D = {</span><span class="el">ana</span><span class="el">beto</span><span class="el">carla</span><span class="set">}</span>
+            </div>
+            <div class="two">
+              <div class="matrix-wrap">
+                <p class="mini">Ama<sup>I</sup> ⊆ D²</p>
+                <div class="matrix" id="matrix"></div>
+              </div>
+              <div class="ftable-wrap">
+                <p class="mini">f<sup>I</sup> : D → D</p>
+                <table class="ftable" id="ftable">
+                  <tr><td>f(a)</td><td>→</td><td>b</td></tr>
+                  <tr><td>f(b)</td><td>→</td><td>a</td></tr>
+                  <tr><td>f(c)</td><td>→</td><td>c</td></tr>
+                </table>
+                <p class="mini dim">Total: un valor por cada tupla de Dⁿ</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 06 · R3 SINTAXIS -->
+      <section class="slide light" id="r3" data-theme="light" data-title="R3 · Sintaxis">
+        <div class="slide-inner split">
+          <div>
+            <p class="kicker" data-reveal><span class="req">R3</span> Sintaxis</p>
+            <h2 data-split>Todos los conectivos. Una gramática.</h2>
+            <p class="req-text" data-reveal>“Admitir todos los conectivos definidos como símbolos lógicos.”</p>
+            <div class="prec" data-reveal>
+              <div><span>1</span><b>¬ ∀x ∃x</b><i>unarios</i></div>
+              <div><span>2</span><b>∧</b><i>izquierda</i></div>
+              <div><span>3</span><b>∨</b><i>izquierda</i></div>
+              <div><span>4</span><b>→</b><i>derecha</i></div>
+              <div><span>5</span><b>↔</b><i>derecha</i></div>
+            </div>
+            <p class="small" data-reveal>
+              Parser de descenso recursivo: una función por nivel de precedencia, más <code>⊤</code>, <code>⊥</code> e
+              igualdad <code>t₁ = t₂</code>.
+            </p>
+            <p class="paren" data-reveal>
+              <span id="paren-in"></span><br />
+              <span class="dim">se agrupa como</span> <span id="paren-out"></span>
+            </p>
+          </div>
+          <div class="visual">
+            <p class="mini center">Árbol sintáctico generado por el parser real</p>
+            <div class="ast-formula" id="ast-formula"></div>
+            <svg class="ast" id="ast" role="img" aria-label="Árbol sintáctico"></svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- 07 · R4 VARIABLES -->
+      <section class="slide dark" id="r4" data-theme="dark" data-title="R4 · Variables">
+        <div class="slide-inner center">
+          <p class="kicker" data-reveal><span class="req">R4</span> Variables y cuantificadores</p>
+          <h2 data-split>Abierta o cerrada. Siempre sabemos qué falta.</h2>
+          <p class="req-text narrow" data-reveal>
+            “Aceptar fórmulas abiertas y cerradas; identificar las variables libres y solicitar un entorno que las
+            fije en D.”
+          </p>
+          <div class="scope" id="scope">
+            <div class="scope-formula">
+              <span class="q">∀x</span> <span class="b">P(<em class="bound">x</em>)</span> <span class="op">∧</span>
+              <span class="b">Q(<em class="free">x</em>)</span>
+            </div>
+            <div class="scope-bar"><span class="bar"></span><span class="lbl">alcance de ∀x</span></div>
+            <div class="scope-free"><span class="lbl">x libre</span></div>
+          </div>
+          <div class="env-row" data-reveal>
+            <div class="env-card"><span class="mini">freeVariables(φ)</span><b id="fv-out">{ x }</b></div>
+            <div class="arrow">→</div>
+            <div class="env-card"><span class="mini">Entorno pedido al usuario</span><b>e = { x ↦ dos }</b></div>
+            <div class="arrow">→</div>
+            <div class="env-card"><span class="mini">Sin entorno</span><b class="red">unassigned-variable</b></div>
+          </div>
+          <p class="small narrow" data-reveal>
+            Los cuantificadores ligan como ¬: su cuerpo es la fórmula unaria que sigue. Para abarcar más se usan
+            paréntesis: <code>∀x (P(x) ∧ Q(x))</code>.
+          </p>
+        </div>
+      </section>
+
+      <!-- 08 · R5 INTERFAZ -->
+      <section class="slide light" id="r5" data-theme="light" data-title="R5 · Interfaz">
+        <div class="slide-inner split">
+          <div>
+            <p class="kicker" data-reveal><span class="req">R5</span> Interfaz</p>
+            <h2 data-split>Botones o teclado. Tú eliges.</h2>
+            <p class="req-text" data-reveal>
+              “Ingreso gráfico del lenguaje, interpretación, fórmulas y entornos. Incluir botones para ¬, ∧, ∨, →,
+              ∀, ∃, ) y (. Deberá permitir también la edición con teclado.”
+            </p>
+            <div class="ascii" data-reveal>
+              <div><code>~ !</code><b>¬</b></div><div><code>&amp;</code><b>∧</b></div><div><code>|</code><b>∨</b></div>
+              <div><code>-&gt;</code><b>→</b></div><div><code>&lt;-&gt;</code><b>↔</b></div><div><code>forall A</code><b>∀</b></div>
+              <div><code>exists E</code><b>∃</b></div><div><code>T</code><b>⊤</b></div><div><code>F</code><b>⊥</b></div>
+            </div>
+            <p class="small" data-reveal>Editor CodeMirror con resaltado, autocompletado y errores subrayados en su posición.</p>
+          </div>
+          <div class="visual">
+            <div class="device">
+              <div class="screen"><span id="type-out"></span><span class="caret"></span></div>
+              <div class="keys" id="keys">
+                <button type="button" data-k="¬">¬</button><button type="button" data-k="∧">∧</button>
+                <button type="button" data-k="∨">∨</button><button type="button" data-k="→">→</button>
+                <button type="button" data-k="↔">↔</button><button type="button" data-k="∀">∀</button>
+                <button type="button" data-k="∃">∃</button><button type="button" data-k="(">(</button>
+                <button type="button" data-k=")">)</button><button type="button" data-k="⊤">⊤</button>
+                <button type="button" data-k="⊥">⊥</button><button type="button" data-k="=">=</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 09 · R6 RESULTADO -->
+      <section class="slide dark" id="r6" data-theme="dark" data-title="R6 · Resultado">
+        <div class="slide-inner">
+          <p class="kicker" data-reveal><span class="req">R6</span> Resultado</p>
+          <h2 data-split>No solo dice qué. Dice por qué.</h2>
+          <p class="req-text" data-reveal>
+            “Mostrar Verdadero o Falso y una explicación de las razones decisivas. Indicar un testigo para un
+            existencial verdadero, un contraejemplo para un universal falso y comprobación completa para un universal
+            verdadero o un existencial falso.”
+          </p>
+          <div class="cases" id="cases"></div>
+          <p class="small dim" data-reveal>Textos generados en vivo por <code>evaluate()</code> + <code>explain()</code> del proyecto.</p>
+        </div>
+      </section>
+
+      <!-- 10 · R7 VALIDACIÓN -->
+      <section class="slide light" id="r7" data-theme="light" data-title="R7 · Validación">
+        <div class="slide-inner split">
+          <div>
+            <p class="kicker" data-reveal><span class="req">R7</span> Validación</p>
+            <h2 data-split>Entrada inválida. Cero valor de verdad.</h2>
+            <p class="req-text" data-reveal>
+              “Detectar errores de sintaxis, símbolos, aridades, dominio, tuplas y asignaciones faltantes o inválidas.
+              Las entradas incorrectas no recibirán un valor de verdad.”
+            </p>
+            <div class="specs" data-reveal>
+              <div><b data-count="21">0</b><span>códigos de error</span></div>
+              <div><b>1</b><span>puerta: <code>validateInput</code></span></div>
+            </div>
+            <div class="errs" id="errs"></div>
+          </div>
+          <div class="visual">
+            <div class="codes" id="codes"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 11 · TARSKI -->
+      <section class="slide dark" id="tarski" data-theme="dark" data-title="Semántica">
+        <div class="slide-inner">
+          <p class="kicker" data-reveal>Semántica de Tarski</p>
+          <h2 data-split>Cada cláusula, una función.</h2>
+          <div class="clauses" id="clauses">
+            <div><b>⟦x⟧ = e(x)</b><span>⟦f(t₁,…,tₙ)⟧ = f<sup>I</sup>(⟦t₁⟧,…,⟦tₙ⟧)</span><code>evalTerm</code></div>
+            <div><b>I, e ⊨ ⊤</b><span>siempre · ⊥ nunca</span><code>evalFormula</code></div>
+            <div><b>I, e ⊨ P(t₁,…,tₙ)</b><span>sii (⟦t₁⟧,…,⟦tₙ⟧) ∈ P<sup>I</sup></span><code>evalPredicate</code></div>
+            <div><b>I, e ⊨ t₁ = t₂</b><span>sii ⟦t₁⟧ = ⟦t₂⟧</span><code>evalEquality</code></div>
+            <div><b>I, e ⊨ ¬φ</b><span>sii I, e ⊭ φ</span><code>evalNot</code></div>
+            <div><b>∧ ∨ → ↔</b><span>tablas de verdad</span><code>evalBinary</code></div>
+            <div><b>I, e ⊨ ∀x φ</b><span>sii para todo d ∈ D, I, e[x ↦ d] ⊨ φ</span><code>evalForAll</code></div>
+            <div><b>I, e ⊨ ∃x φ</b><span>sii existe d ∈ D con I, e[x ↦ d] ⊨ φ</span><code>evalExists</code></div>
+          </div>
+          <p class="small" data-reveal>
+            Devuelve un <b>árbol de justificación</b>, no un booleano: cada nodo guarda subfórmula, entorno, valor,
+            razón y si es <b>decisivo</b>. Límite de seguridad: <b>20 000 nodos</b> (crece como |D|<sup>k</sup>).
+          </p>
+          <aside class="rule-note" data-reveal>
+            <b>Consulta conceptual</b> — La IA puede ayudar a resolver dudas sobre la teoría, pero no para obtener
+            directamente soluciones.
+          </aside>
+        </div>
+      </section>
+
+      <!-- 12 · HINTIKKA -->
+      <section class="slide light" id="hintikka" data-theme="light" data-title="Juego de Hintikka">
+        <div class="slide-inner split">
+          <div>
+            <p class="kicker" data-reveal>Extra · Juego de evaluación</p>
+            <h2 data-split>Verificador contra falsificador.</h2>
+            <p class="lead" data-reveal>
+              ∃ y ∨ los juega el verificador; ∀ y ∧ el falsificador; ¬ intercambia los roles. En el átomo gana quien
+              tenga la verdad de su lado.
+            </p>
+            <p class="theorem" data-reveal>
+              <b>Teorema.</b> El verificador tiene estrategia ganadora ⇔ I, e ⊨ φ.
+            </p>
+            <div class="seg" id="game-pick" data-reveal></div>
+            <aside class="rule-note" data-reveal>
+              <b>Aprendizaje activo</b> — Desarrollar soluciones propias basadas en la comprensión de los temas. La IA
+              es una herramienta de consulta, no de creación.
+            </aside>
+          </div>
+          <div class="visual">
+            <div class="game" id="game"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 13 · CALIDAD -->
+      <section class="slide light" id="calidad" data-theme="light" data-title="Calidad">
+        <div class="slide-inner">
+          <p class="kicker" data-reveal>Ingeniería</p>
+          <h2 data-split>Probado hasta el último átomo.</h2>
+          <div class="specs big" data-reveal>
+            <div><b data-count="232">0</b><span>pruebas del núcleo, todas en verde</span></div>
+            <div><b data-count="7">0</b><span>de 7 requisitos cubiertos</span></div>
+            <div><b data-count="21">0</b><span>códigos de error</span></div>
+            <div><b data-count="0">0</b><span>dependencias en el núcleo</span></div>
+          </div>
+          <div class="stack" data-reveal>
+            <div>
+              <h3>Núcleo</h3>
+              <p>TypeScript estricto · lexer · parser · validate · evaluate · explain · game</p>
+            </div>
+            <div>
+              <h3>Interfaz</h3>
+              <p>React 19 · Vite · CodeMirror · Zustand · Tailwind · Radix</p>
+            </div>
+            <div>
+              <h3>Pruebas</h3>
+              <p>Vitest · pruebas por propiedades con fast-check · end-to-end con Playwright</p>
+            </div>
+          </div>
+          <aside class="rule-note dark-note" data-reveal>
+            <b>Originalidad y esfuerzo</b> — Toda solución entregada debe ser resultado del propio trabajo; la IA solo
+            para aclaraciones, no para obtener una solución completa.
+          </aside>
+        </div>
+      </section>
+
+      <!-- 14 · IA -->
+      <section class="slide dark" id="ia" data-theme="dark" data-title="Uso de IA">
+        <div class="slide-inner">
+          <p class="kicker" data-reveal>Uso de herramientas de IA</p>
+          <h2 data-split>Reglas claras. Declaración honesta.</h2>
+          <div class="rules">
+            <article data-reveal><span>01</span><h3>Consulta conceptual</h3><p>Utilice la IA para entender mejor los conceptos que se aplican en los ejercicios. Puede ayudar a resolver dudas sobre la teoría, pero no para obtener directamente soluciones.</p></article>
+            <article data-reveal><span>02</span><h3>Aprendizaje activo</h3><p>Es fundamental desarrollar soluciones propias basadas en la comprensión de los temas. La IA debe ser una herramienta de consulta, no de creación.</p></article>
+            <article data-reveal><span>03</span><h3>Originalidad y esfuerzo</h3><p>Todas las soluciones entregadas deben ser resultado del propio trabajo. Cualquier consulta a una IA debe usarse solo para aclaraciones y no para obtener una solución completa.</p></article>
+            <article data-reveal><span>04</span><h3>Ética</h3><p>Respetar estas reglas es importante para el aprendizaje y para mantener los altos estándares éticos de la universidad. El uso indebido de la IA sin comprender el proceso afecta el desarrollo profesional.</p></article>
+          </div>
+          <blockquote class="declaration" data-reveal>
+            <p class="mini">Declaración del proyecto (README)</p>
+            “Se utilizó Claude (Anthropic) como asistente en el diseño, generación y corrección de partes del código.
+            Todo el código fue revisado, probado y comprendido por los integrantes, quienes tomaron las decisiones de
+            diseño y validaron los resultados.”
+          </blockquote>
+        </div>
+      </section>
+
+      <!-- 15 · CIERRE -->
+      <section class="slide hero end" id="cierre" data-theme="dark" data-title="Cierre">
+        <canvas class="gl" id="end-gl" aria-hidden="true"></canvas>
+        <div class="end-content">
+          <p class="kicker" data-reveal>Gracias</p>
+          <h2 class="hero-title" data-split>¿Preguntas?</h2>
+          <div class="team" data-reveal>
+            <span>Samuel Robledo</span><span>Miguel Rosas</span><span>Miguel Carranza</span>
+          </div>
+          <div class="cta-row" data-reveal>
+            <a class="btn btn-glass" href="#portada">Volver al inicio</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
