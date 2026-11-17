@@ -1318,3 +1318,53 @@ h3 {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ───────────────────────────── Siete requisitos ───────────────────────────── */
+.reqlist {
+  list-style: none;
+  margin: 18px 0 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+}
+.reqlist li {
+  display: grid;
+  grid-template-columns: 56px minmax(160px, 260px) 1fr;
+  align-items: baseline;
+  gap: 16px;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--line);
+  position: relative;
+}
+.reqlist li::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  height: 1px;
+  width: 100%;
+  background: var(--ink);
+  transform: scaleX(var(--p, 0));
+  transform-origin: left;
+}
+.reqlist .n {
+  font: 500 13px var(--sans);
+  letter-spacing: 0.12em;
+  color: var(--soft);
+}
+.reqlist b {
+  font-weight: 500;
+  font-size: clamp(1.1rem, 1.6vw, 1.4rem);
+}
+.reqlist code {
+  font: 400 clamp(1rem, 1.5vw, 1.3rem) var(--mono);
+  color: var(--ink);
+  white-space: pre-wrap;
+}
+@media (max-width: 700px) {
+  .reqlist li {
+    grid-template-columns: 40px 1fr;
+  }
+  .reqlist code {
+    grid-column: 2;
+  }
+}

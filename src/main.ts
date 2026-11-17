@@ -5,21 +5,15 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
 import { createParticles } from './particles';
 import {
-  buildAst,
   buildCases,
   buildErrors,
   buildGamePicker,
-  buildMatrix,
   countUp,
   initObjective,
-  playAst,
   playCases,
-  playClassify,
   playErrors,
   playGame,
-  playMatrix,
-  playScope,
-  playTyping,
+  playRequirements,
 } from './slides';
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
@@ -38,8 +32,6 @@ document.querySelectorAll<HTMLElement>('[data-split]').forEach((el) => {
 });
 
 /* ───────────── Contenido generado con el núcleo real ───────────── */
-buildMatrix();
-buildAst();
 buildCases();
 buildErrors();
 buildGamePicker();
@@ -48,18 +40,13 @@ const startObjective = initObjective();
 /* ───────────── Animación de entrada por diapositiva ───────────── */
 const onEnter: Record<string, () => void> = {
   objetivo: startObjective,
-  r1: playClassify,
-  r2: playMatrix,
-  r3: playAst,
-  r4: playScope,
-  r5: playTyping,
+  requisitos: playRequirements,
   r6: playCases,
   r7: () => {
     playErrors();
     countUp(document.querySelector('#r7')!);
   },
   hintikka: playGame,
-  calidad: () => countUp(document.querySelector('#calidad')!),
 };
 
 function reveal(slide: HTMLElement) {
@@ -68,17 +55,6 @@ function reveal(slide: HTMLElement) {
   const tl = gsap.timeline();
   tl.fromTo(words, { yPercent: 115, rotate: 4 }, { yPercent: 0, rotate: 0, duration: 1.1, stagger: 0.06, ease: 'expo.out' });
   tl.fromTo(items, { y: 36, opacity: 0 }, { y: 0, opacity: 1, duration: 0.9, stagger: 0.08, ease: 'expo.out' }, 0.15);
-  if (slide.id === 'flujo') {
-    tl.fromTo(
-      '#pipeline li',
-      { y: 60, opacity: 0, scale: 0.9 },
-      { y: 0, opacity: 1, scale: 1, stagger: 0.09, duration: 0.9, ease: 'expo.out' },
-      0.3,
-    );
-  }
-  if (slide.id === 'tarski') {
-    tl.fromTo('#clauses > div', { opacity: 0, y: 30 }, { opacity: 1, y: 0, stagger: 0.07, duration: 0.7, ease: 'expo.out' }, 0.3);
-  }
   if (slide.id === 'ia') {
     tl.fromTo('.rules article', { y: 50, opacity: 0 }, { y: 0, opacity: 1, stagger: 0.12, duration: 0.9, ease: 'expo.out' }, 0.3);
   }
@@ -143,7 +119,8 @@ document.fonts.ready.then(() => {
   createParticles(document.querySelector('#end-gl')!, [
     { glyph: '⊨', name: '' },
     { glyph: '∎', name: '' },
-    { glyph: '?', name: '' },
+    { glyph: '∀', name: '' },
+    { glyph: '∃', name: '' },
   ], undefined, 0.36);
 });
 
